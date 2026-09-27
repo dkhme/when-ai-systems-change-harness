@@ -1,0 +1,14 @@
+When AI Systems Change harness
+Copyright 2026 The authors of "When AI Systems Change: A Survey of Security Reassessment across Inheritance, Updates, and Runtime Binding"
+
+This work is licensed under the Apache License, Version 2.0. The full text of
+the license is in the LICENSE file.
+
+This work includes code adapted from AgentDojo 0.1.35, Copyright (c) 2024
+Edoardo Debenedetti, Jie Zhang, Mislav Balunovic, Luca Beurer-Kellner, Marc
+Fischer, and Florian Tramèr, which is distributed under the MIT License.
+THIRD_PARTY_NOTICES.md names the adapted functions and reproduces the AgentDojo
+license in full.
+
+AgentDojo 0.1.35 is also a runtime dependency of this work. It is installed
+separately from requirements.txt and is not redistributed here.

@@ -1,0 +1,16 @@
+# Credentials: never commit a real .env; the template stays tracked.
+.env
+.env.*
+!.env.example
+
+# Local environment and bytecode.
+.venv/
+__pycache__/
+*.pyc
+
+# Run outputs: raw traces, exports and logs.
+results/
+results_export/
+*.log
+
+.DS_Store

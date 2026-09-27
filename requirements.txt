@@ -1,0 +1,13 @@
+# Pinned so the harness configuration hash stays meaningful across machines
+# and across arms. Every arm must run the identical harness, and a floating
+# dependency defeats that.
+
+agentdojo==0.1.35
+google-genai>=2.17.0
+python-dotenv>=1.0.1
+pyyaml>=6.0.1
+
+# Statistics. AgentDojo's own analysis uses statsmodels proportion_confint;
+# matching their method aids comparison with the published numbers.
+statsmodels>=0.14.2
+scipy>=1.11.0

@@ -1,0 +1,100 @@
+# THE FROZEN HARNESS CONFIGURATION.
+#
+# Every arm of the measurement study (Google, Anthropic, open-weight, OpenAI)
+# must run against this file unchanged. The invariant: if one family runs under
+# one configuration and another under a different one, the cross-family
+# comparison is void and the money is wasted.
+#
+# `src/freeze.py` hashes this file together with the resolved system message and
+# the installed agentdojo version, and writes config/harness.lock.json. Every
+# results manifest carries that hash. `run_sweep.py` refuses to start when the
+# hash has moved unless it is given --allow-config-change, which also stamps the
+# results as belonging to a different configuration generation.
+#
+# Changing anything below invalidates every run already recorded against the
+# previous hash. Do it deliberately, and re-run every arm.
+
+harness:
+  agentdojo_version: "0.1.35"
+
+  # v1.2.2 is the current AgentDojo default: 97 user tasks, 35 injection tasks,
+  # 949 (user x injection) security cases, 132 utility runs, 1081 runs per pass.
+  #
+  # Versions v1 through v1.1.2 carry 27 injection tasks and 629 security cases.
+  # The published AgentDojo cost anchor of roughly 39 US dollars per pass was
+  # measured on that smaller set, so a v1.2.2 pass costs about 1.43 times the
+  # published figure at equal token prices.
+  benchmark_version: "v1.2.2"
+
+  suites:
+    - workspace
+    - slack
+    - travel
+    - banking
+
+  # important_instructions is the strongest attack in the AgentDojo paper and
+  # the one its headline numbers use.
+  attack: "important_instructions"
+
+  # No defense in the primary condition. The defense sweep is a separate
+  # condition run with --defense, which produces a distinct pipeline name and so
+  # writes to a distinct results tree.
+  defense: null
+
+  # null selects the "default" entry of agentdojo/data/system_messages.yaml.
+  # freeze.py resolves it to literal text and hashes that text, so a change in
+  # the package's default message is caught rather than silently absorbed.
+  system_message_name: null
+  system_message: null
+
+  tool_output_format: "yaml"
+
+generation:
+  temperature: 0.0
+
+  # AgentDojo's GoogleLLM default. Gemini caps output at 65536, so this is
+  # effectively uncapped. The spend guard is the budget ceiling in run_sweep.py,
+  # not this number.
+  max_output_tokens: 65535
+
+  # How to treat the reasoning default, which is a confound whenever versions are
+  # compared.
+  #
+  #   as_deployed  - send no thinking_config, so each model uses whatever its
+  #                  own default is. This is the regression a practitioner
+  #                  actually experiences on upgrade.
+  #   normalized   - pin thinking_budget to `thinking_budget` below on every
+  #                  model, isolating the weights from the reasoning default.
+  #   off          - thinking_budget 0 where the model permits it.
+  #
+  # Run as_deployed first. The difference between the two arms is a finding,
+  # not a nuisance.
+  thinking_mode: "as_deployed"
+  thinking_budget: 4096
+
+execution:
+  repetitions: 3
+
+  # Each repetition writes to its own logdir. AgentDojo caches results at
+  # logdir/pipeline/suite/user_task/attack/injection_task.json and skips any
+  # task it finds there, so repetitions sharing a logdir would silently collapse
+  # into a single measured pass.
+  #
+  # Three repetitions is the convention in Agent Security Bench and InjecAgent.
+  # Sampling is not deterministic and temperature 0 does not make it so, which
+  # is what makes repetition the only variance estimator available.
+
+  # Concurrent in-flight tasks. Google does not publish paid-tier RPM in its
+  # documentation and directs users to the AI Studio rate-limit dashboard, so
+  # this starts conservative. Raise it after watching the 429 counter on a real
+  # run.
+  concurrency: 4
+
+  # Hard ceiling in US dollars, enforced against measured token usage. The sweep
+  # stops cleanly when the ceiling is reached and remains resumable. Costs are
+  # computed from the response usage_metadata rather than estimated.
+  budget_usd: 250.0
+
+  # Retries per task on transient API failure, on top of the tenacity retries
+  # already inside AgentDojo's Google adapter.
+  max_task_retries: 2

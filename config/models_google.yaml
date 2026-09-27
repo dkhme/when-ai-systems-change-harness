@@ -1,0 +1,140 @@
+# Google Gemini model registry for the integration-regression study.
+#
+# Prices are US dollars per 1,000,000 tokens, paid tier, verified against
+# https://ai.google.dev/gemini-api/docs/pricing on 7 August 2026.
+# Model availability verified against https://ai.google.dev/gemini-api/docs/models
+# and https://ai.google.dev/gemini-api/docs/deprecations on the same date.
+#
+# `input_long` and `output_long` apply when prompt_token_count exceeds
+# `long_context_threshold`. Only the Pro models are tiered this way.
+#
+# Run `python src/verify_setup.py` to re-check every identifier against the
+# live API before spending. Do not trust this file on its own.
+
+verified_on: "2026-08-07"
+pricing_source: "https://ai.google.dev/gemini-api/docs/pricing"
+availability_source: "https://ai.google.dev/gemini-api/docs/models"
+
+models:
+  # --- Flash-Lite lineage: 3 version points ---
+  gemini-2.5-flash-lite:
+    lineage: flash-lite
+    order: 1
+    input: 0.10
+    output: 0.40
+    status: stable
+    notes: "Released 22 July 2025. No retirement date announced."
+
+  gemini-3.1-flash-lite:
+    lineage: flash-lite
+    order: 2
+    input: 0.25
+    output: 1.50
+    status: stable
+    notes: "Audio input prices at 0.50; AgentDojo is text-only so the text rate applies."
+
+  gemini-3.5-flash-lite:
+    lineage: flash-lite
+    order: 3
+    input: 0.30
+    output: 2.50
+    status: stable
+
+  # --- Flash lineage: 4 version points, the longest series available ---
+  gemini-2.5-flash:
+    lineage: flash
+    order: 1
+    input: 0.30
+    output: 2.50
+    status: stable
+    notes: "Released 17 June 2025. No retirement date announced."
+
+  gemini-3-flash-preview:
+    lineage: flash
+    order: 2
+    input: 0.50
+    output: 3.00
+    status: preview
+    notes: "Preview identifiers can be withdrawn without the deprecation notice period."
+
+  gemini-3.5-flash:
+    lineage: flash
+    order: 3
+    input: 1.50
+    output: 9.00
+    status: stable
+
+  gemini-3.6-flash:
+    lineage: flash
+    order: 4
+    input: 1.50
+    output: 7.50
+    status: stable
+
+  # --- Pro lineage: 2 version points; gemini-3-pro-preview is shut down ---
+  gemini-2.5-pro:
+    lineage: pro
+    order: 1
+    input: 1.25
+    output: 10.00
+    input_long: 2.50
+    output_long: 15.00
+    long_context_threshold: 200000
+    status: stable
+    notes: "Released 17 June 2025. No retirement date announced."
+
+  gemini-3.1-pro-preview:
+    lineage: pro
+    order: 2
+    input: 2.00
+    output: 12.00
+    input_long: 4.00
+    output_long: 18.00
+    long_context_threshold: 200000
+    status: preview
+
+# Models confirmed unavailable as of 7 August 2026. Listed so nobody
+# reintroduces them from a stale note.
+retired:
+  - gemini-1.5-pro-002
+  - gemini-1.5-pro-001
+  - gemini-1.5-flash-002
+  - gemini-1.5-flash-001
+  - gemini-2.0-flash            # shut down 1 June 2026
+  - gemini-2.0-flash-lite       # shut down 1 June 2026
+  - gemini-2.0-flash-exp
+  - gemini-3-pro-preview        # shut down; the Pro lineage skips from 2.5 to 3.1
+  - gemini-3.1-flash-lite-preview
+  - gemini-2.5-pro-preview-05-06        # AgentDojo default; superseded by gemini-2.5-pro
+  - gemini-2.5-flash-preview-04-17      # AgentDojo default; superseded by gemini-2.5-flash
+
+# Named subsets for the --preset flag of run_sweep.py.
+presets:
+  smoke:
+    description: "Cheapest model, Slack suite, 2 user tasks. Proves the pipeline for pennies."
+    models: [gemini-2.5-flash-lite]
+
+  flash-lite-lineage:
+    description: "3 consecutive Flash-Lite versions. Cheapest complete lineage."
+    models: [gemini-2.5-flash-lite, gemini-3.1-flash-lite, gemini-3.5-flash-lite]
+
+  flash-lineage:
+    description: "4 consecutive Flash versions. The longest version series in the study."
+    models: [gemini-2.5-flash, gemini-3-flash-preview, gemini-3.5-flash, gemini-3.6-flash]
+
+  pro-lineage:
+    description: "2 Pro versions. Most expensive, and the Pro series has a hole where 3-pro was."
+    models: [gemini-2.5-pro, gemini-3.1-pro-preview]
+
+  all:
+    description: "Every model above: 9 models across 3 lineages."
+    models:
+      - gemini-2.5-flash-lite
+      - gemini-3.1-flash-lite
+      - gemini-3.5-flash-lite
+      - gemini-2.5-flash
+      - gemini-3-flash-preview
+      - gemini-3.5-flash
+      - gemini-3.6-flash
+      - gemini-2.5-pro
+      - gemini-3.1-pro-preview

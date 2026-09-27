@@ -1,0 +1,101 @@
+# Anthropic model registry for the integration-regression study.
+#
+# This is the Anthropic arm of the study. It exists because the Sonnet lineage is
+# the only remaining THREE-POINT same-tier lineage available to the study outside
+# Google, and because a movement along a lineage can only be judged against that
+# lineage's own measured noise floor, never a borrowed one.
+#
+# Prices are US dollars per 1,000,000 tokens, verified against
+# https://platform.claude.com/docs/en/about-claude/pricing on 10 August 2026.
+# Availability verified the same day by a live `GET /v1/models`.
+#
+# `cached_input` is recorded for the record only and is NOT used in pricing.
+# Cached tokens are billed at the full input rate here, exactly as the Google and
+# Baseten arms do, so every cost figure stays an upper bound. Same convention on
+# every arm, so the budget ceiling means the same thing everywhere.
+#
+# Run `python src/verify_setup_anthropic.py` to re-check every identifier against
+# the live API before spending. Do not trust this file on its own.
+
+verified_on: "2026-08-10"
+pricing_source: "https://platform.claude.com/docs/en/about-claude/pricing"
+availability_source: "GET /v1/models against the Anthropic API, 2026-08-10"
+
+models:
+  # --- Sonnet lineage: 3 version points -----------------------------------
+  #
+  # The tier is fixed on purpose. The study's budget rule is Sonnet only, with
+  # Opus deliberately avoided, and versions may only be compared WITHIN a tier.
+  # Both point the same way here.
+  claude-sonnet-4-5-20250929:
+    lineage: sonnet
+    order: 1
+    input: 3.00
+    output: 15.00
+    cached_input: 0.30
+    status: stable
+
+  claude-sonnet-4-6:
+    lineage: sonnet
+    order: 2
+    input: 3.00
+    output: 15.00
+    cached_input: 0.30
+    status: stable
+
+  # Introductory pricing of $2/$10 runs through 31 August 2026, after which the
+  # standard $3/$15 applies. This file carries the introductory rate because it
+  # is what this run is billed at. ANY RE-RUN ON OR AFTER 1 SEPTEMBER 2026 MUST
+  # RAISE THESE TWO NUMBERS or its cost accounting and its budget ceiling will
+  # both be wrong by a third.
+  claude-sonnet-5:
+    lineage: sonnet
+    order: 3
+    input: 2.00
+    output: 10.00
+    cached_input: 0.20
+    status: stable
+    pricing_note: "introductory through 2026-08-31; becomes 3.00/15.00 on 2026-09-01"
+
+# Available to this key and deliberately not run.
+#
+# The Opus lineage is FIVE consecutive points, 4.5 through 5, which would be the
+# longest consecutive version series anywhere in this study -- longer than the
+# four-point Gemini Flash lineage, the longest series in any arm that was run.
+# It is excluded only by the project's
+# Sonnet-only budget rule, not by anything methodological. At $5/$25 per MTok it
+# is roughly 2.5x the Sonnet arm per token, so a single-repetition pass over the
+# reduced suite set would run on the order of $150. Worth raising as a funding
+# decision rather than leaving unrecorded.
+available_not_used:
+  opus_lineage_five_points:
+    - claude-opus-4-5-20251101
+    - claude-opus-4-6
+    - claude-opus-4-7
+    - claude-opus-4-8
+    - claude-opus-5
+  other:
+    - claude-haiku-4-5-20251001   # single point, no lineage
+
+# Tokenizer change, which affects COST accounting only and never the science.
+#
+# Claude 4.7 and later use a newer tokenizer that produces roughly 30% more
+# tokens for the same text; Sonnet 4.6 and earlier use the previous one. So
+# claude-sonnet-5 bills more tokens than its siblings for byte-identical input,
+# and a per-token cost comparison across this lineage is not like for like. The
+# measured token counts in each manifest are the record; do not read a token
+# delta between sonnet-5 and its predecessors as a behavioural difference.
+tokenizer_note:
+  new_tokenizer_from: "claude-4-7-and-later"
+  affects: ["claude-sonnet-5"]
+  approximate_token_inflation: 1.30
+
+presets:
+  sonnet-lineage:
+    models:
+      - claude-sonnet-4-5-20250929
+      - claude-sonnet-4-6
+      - claude-sonnet-5
+  smoke:
+    models:
+      - claude-sonnet-4-5-20250929

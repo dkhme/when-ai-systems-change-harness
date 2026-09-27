@@ -1,0 +1,256 @@
+# OpenAI model registry for the integration-regression study.
+#
+# This is the OpenAI arm of the study, restricted by the authors on
+# 17 August 2026 to four models: gpt-5.5 and the three general tiers of the
+# gpt-5.6 family. gpt-5.5-pro, gpt-5.4 and below, and the two `cyber` models are
+# available to this key and deliberately excluded; see `available_not_used`.
+#
+# Prices are US dollars per 1,000,000 tokens, verified twice against
+# https://developers.openai.com/api/docs/pricing on 17 August 2026. The
+# platform.openai.com/docs/pricing URL now 301s to that host.
+# Availability verified the same day by a live `GET /v1/models` with this key;
+# all four identifiers below were returned.
+#
+# `cached_input` is recorded for the record only and is NOT used in pricing.
+# Cached tokens bill at the full input rate here, exactly as the Google,
+# Baseten and Anthropic arms do, so every cost figure stays an upper bound.
+# That convention matters more on this arm than on any other: OpenAI applies
+# prompt caching AUTOMATICALLY above 1024 tokens and there is no way to switch
+# it off, so on a workload with this much repeated prefix the real invoice can
+# come in far under the ceiling. Do not restate the ceiling as the measured cost.
+#
+# Run `python src/verify_setup_openai.py` to re-check every identifier against
+# the live API before spending. Do not trust this file on its own.
+
+verified_on: "2026-08-17"
+pricing_source: "https://developers.openai.com/api/docs/pricing"
+availability_source: "GET https://api.openai.com/v1/models, 2026-08-17"
+
+models:
+  # --- The flagship transition: the only WITHIN-TIER version pair here -------
+  #
+  # gpt-5.5 and gpt-5.6-sol carry the identical price point of 5.00/30.00, and
+  # OpenAI positions sol as the frontier tier of the 5.6 family. Price identity
+  # is the strongest tier evidence available, for the vendor publishes no tier
+  # mapping across the two generations. The study compares versions only within
+  # a tier, so this pair is the arm's primary cell and every other comparison in
+  # the file is secondary to it.
+  gpt-5.5:
+    lineage: gpt-flagship
+    order: 1
+    input: 5.00
+    output: 30.00
+    cached_input: 0.50
+    status: stable
+    snapshot: "gpt-5.5-2026-04-23"
+    notes: >-
+      A dated snapshot exists and SHOULD be pinned for reproducibility. The
+      floating alias is recorded here because it is what the price table names.
+
+  gpt-5.6-sol:
+    lineage: gpt-flagship
+    order: 2
+    input: 5.00
+    output: 30.00
+    cached_input: 0.50
+    status: stable
+    notes: >-
+      No dated snapshot is served, so this identifier cannot be pinned. That is
+      the same reproducibility limitation the Baseten arm records: a hosted
+      provider gives reproducibility of the model NAME rather than of the
+      weights. State it in the write-up rather than leaving it implied.
+
+  # --- The mid-tier transition: gpt-5.4 -> gpt-5.6-terra ---------------------
+  #
+  # Added 2026-08-17 as Episode B (the `episode-b` preset below). Prices verified
+  # the same day against the pricing page; availability verified by a live
+  # GET /v1/models, which also returned the dated snapshots recorded below.
+  gpt-5.4:
+    lineage: gpt-mid
+    order: 1
+    input: 2.50
+    output: 15.00
+    cached_input: 0.25
+    status: stable
+    snapshot: "gpt-5.4-2026-03-05"
+    notes: >-
+      Predecessor of terra by price slot: 2.50 against terra's 2.00, the nearest
+      pair across the two generations. Not deprecated as of 2026-08-17.
+
+  gpt-5.6-terra:
+    lineage: gpt-mid
+    order: 2
+    input: 2.00
+    output: 12.00
+    cached_input: 0.20
+    status: stable
+    notes: >-
+      OpenAI positions terra as matching the PREVIOUS generation's flagship at
+      roughly half the cost. So terra sits in two structures at once. It is
+      the mid-tier successor to gpt-5.4, which is the lineage
+      recorded here, and it is simultaneously the capability-matched successor to
+      gpt-5.5, which arm_dashboard.py surfaces as an ordinary ordered pair.
+
+  # --- The nano-tier transition: gpt-5.4-nano -> gpt-5.6-luna ----------------
+  gpt-5.4-nano:
+    lineage: gpt-nano
+    order: 1
+    input: 0.20
+    output: 1.25
+    cached_input: 0.02
+    status: stable
+    snapshot: "gpt-5.4-nano-2026-03-17"
+    notes: >-
+      Predecessor of luna by price slot, and the mapping is near-exact: 0.20/1.25
+      against luna's 0.20/1.20. The strongest cross-generation tier evidence in
+      this file, since the two identifiers occupy the same price point to within
+      five cents of output.
+
+  gpt-5.6-luna:
+    lineage: gpt-nano
+    order: 2
+    input: 0.20
+    output: 1.20
+    cached_input: 0.02
+    status: stable
+    notes: >-
+      Cheapest model in the whole study at 0.20/1.20, roughly 25x under sol per
+      token. It costs almost nothing to carry, so it rides along on every
+      repetition the flagships get.
+
+# LINEAGE RESTRUCTURED 2026-08-17, and the reason matters for reading any output.
+#
+# terra and luna were first filed under a single `gpt-5.6-ladder` lineage,
+# because before Episode B they had no predecessor in this file and the only
+# structure they formed was a same-generation tier ladder. Adding gpt-5.4 and
+# gpt-5.4-nano gives each of them a genuine version predecessor, so `lineage`
+# now encodes the three VERSION TRANSITIONS:
+#
+#     gpt-5.5       -> gpt-5.6-sol      (gpt-flagship)
+#     gpt-5.4       -> gpt-5.6-terra    (gpt-mid)
+#     gpt-5.4-nano  -> gpt-5.6-luna     (gpt-nano)
+#
+# That is what `analyze.py` pairs, and version transitions are what it should
+# pair. The 5.6 tier ladder has not been lost: `arm_dashboard.py` prints every
+# ordered pair irrespective of lineage, and labels same-generation pairs as tier
+# steps. This is a relabelling of intent and touches no measurement; the model
+# registry is outside the frozen configuration fingerprint, so the 2026-08-17
+# results remain valid under their recorded config_hash b672c07591796dd5.
+#
+# The price-slot mapping across generations is an INFERENCE, not a vendor
+# statement. OpenAI publishes no cross-generation tier mapping. It is strongest
+# for nano -> luna, which share a price point to within five cents of output,
+# and weakest for gpt-5.4 -> terra at 2.50 against 2.00. Say so in the write-up.
+
+# Available to this key on 17 August 2026 and deliberately not run.
+available_not_used:
+  reason: "The authors' scoping call, 2026-08-17: four models, 150 US dollar ceiling."
+  models:
+    - gpt-5.5-pro          # 30.00/180.00, six times sol per input token
+    - gpt-5.5-cyber        # 12.50/75.00; a security-specialised variant, a different question
+    - gpt-5.6-cyber        # 12.50/75.00; likewise
+    - gpt-5.4              # the 5.4 tier ladder would extend the lineage backwards
+    - gpt-5.4-mini
+    - gpt-5.4-nano
+    - gpt-5.2
+    - gpt-5.1
+    - gpt-5
+  note: >-
+    gpt-5.4 at 2.50/15.00 is the natural predecessor of terra and gpt-5.4-nano
+    at 0.20/1.25 the natural predecessor of luna. Adding those two would turn
+    the single flagship pair into three parallel two-point lineages for about
+    32 US dollars more at three repetitions. Raise it as a funding decision
+    rather than leaving it unrecorded, exactly as the Anthropic registry did
+    for the Opus lineage.
+
+# TWO WIRE CONSTRAINTS MEASURED ON 17 AUGUST. Both change the run, and the
+# second one changes the science. Neither is documented by the vendor in a
+# place the study would have found without probing.
+wire_constraints:
+  temperature:
+    finding: "All four models reject temperature=0."
+    error: "Unsupported value: 'temperature' does not support 0 with this model. Only the default (1) value is supported."
+    consequence: >-
+      The whole arm runs at the default of 1.0, which requires --temperature 1.0
+      with --allow-config-change and stamps the results as a separate
+      configuration generation. This is the same wrinkle claude-sonnet-5 forced
+      on the Anthropic arm, and it has the same consequence: temperature 1.0 is
+      not deterministic, so the repetition floor stops being optional.
+
+  reasoning_effort:
+    finding: >-
+      The gpt-5.6 family CANNOT use function tools on /v1/chat/completions at
+      any reasoning effort other than 'none'. gpt-5.5 can, at its default.
+    error: "Function tools with reasoning_effort are not supported for gpt-5.6-sol in /v1/chat/completions. To use function tools, use /v1/responses or set reasoning_effort to 'none'."
+    consequence: >-
+      AgentDojo 0.1.35 speaks Chat Completions only. Running the arm on the
+      package as it stands therefore forces reasoning off for the 5.6 family
+      while gpt-5.5 keeps its default, which would confound the version change
+      with a reasoning change and void the primary cell. There are two ways out,
+      the Responses API (which src/adapters_openai.py uses) or reasoning_effort
+      'none' on every model; they are not equivalent and the choice belongs to
+      whoever owns the as_deployed condition.
+
+# Package-level defects in agentdojo 0.1.35 that an adapter must handle. Found
+# by reading the source on 17 August, not by inference.
+package_notes:
+  reasoning_model_table:
+    where: "agentdojo/agent_pipeline/llms/openai_llm.py:53"
+    detail: >-
+      _REASONING_MODELS is the literal set {"o1", "o3"}, so _is_reasoning_model
+      returns False for every gpt-5.x identifier.
+  falsy_temperature:
+    where: "agentdojo/agent_pipeline/llms/openai_llm.py:162"
+    detail: >-
+      The call site is `temperature=temperature or NOT_GIVEN`. A configured
+      temperature of 0.0 is falsy and is therefore silently dropped rather than
+      sent. On this arm that accident is benign, since 0.0 would be rejected
+      anyway, but it means the field never reached the wire and no run may claim
+      to have been made at temperature 0 through this path.
+  model_name_registration:
+    where: "agentdojo/attacks/base_attacks.py:145"
+    detail: >-
+      important_instructions interpolates a prose model name into the injected
+      message and get_model_name_from_pipeline raises when nothing matches. The
+      Anthropic and Baseten arms both register the name-neutral DEFAULT_MODEL_NAME
+      ("the AI language model") rather than a family string, which keeps the
+      injected bytes identical across arms. This arm follows them; registering
+      "GPT-4", the string the package ships for the gpt-4 family, would inject
+      different bytes and silently break the cross-arm comparison.
+
+presets:
+  smoke:
+    description: "Cheapest model, Slack suite, 2 user tasks. Proves the pipeline for pennies."
+    models: [gpt-5.6-luna]
+
+  flagship-pair:
+    description: "The primary cell: the only within-tier version transition in this arm."
+    models: [gpt-5.5, gpt-5.6-sol]
+
+  ladder-5-6:
+    description: "The 5.6 tier ladder at fixed generation. The capability control."
+    models: [gpt-5.6-luna, gpt-5.6-terra, gpt-5.6-sol]
+
+  mvc:
+    description: "The minimum viable check the authors scoped on 2026-08-17: all four models."
+    models: [gpt-5.5, gpt-5.6-sol, gpt-5.6-terra, gpt-5.6-luna]
+
+  episode-b:
+    description: >-
+      The two 5.4 predecessors, which turn one version transition into three.
+      Cheapest model FIRST so that a budget stop costs the expensive lineage a
+      repetition rather than costing the cheap one everything.
+    models: [gpt-5.4-nano, gpt-5.4]
+
+  three-lineages:
+    description: >-
+      All six models: three parallel two-point version transitions. This is the
+      full arm after Episode B and the set every cross-lineage figure should
+      quote.
+    models:
+      - gpt-5.4-nano
+      - gpt-5.6-luna
+      - gpt-5.4
+      - gpt-5.6-terra
+      - gpt-5.5
+      - gpt-5.6-sol
